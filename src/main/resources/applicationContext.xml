@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" 
-	xmlns:aop="http://www.springframework.org/schema/aop" 
-	xmlns:context="http://www.springframework.org/schema/context" 
-	xmlns:jee="http://www.springframework.org/schema/jee" 
-	xmlns:tx="http://www.springframework.org/schema/tx" 
-	xmlns:task="http://www.springframework.org/schema/task" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:i="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd   
+	   xmlns:aop="http://www.springframework.org/schema/aop" 
+	   xmlns:context="http://www.springframework.org/schema/context" 
+	   xmlns:jee="http://www.springframework.org/schema/jee" 
+	   xmlns:tx="http://www.springframework.org/schema/tx" 
+	   xmlns:task="http://www.springframework.org/schema/task" 
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	   xmlns:i="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd   
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
 	http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.1.xsd   
@@ -17,5 +17,35 @@
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
+
+	<context:component-scan base-package="com.thescene" />
+
+	<bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+		<property name="dataSource" ref="dataSource" />
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="databaseSchemaUpdate" value="true" />
+		<property name="jobExecutorActivate" value="false" />
+		<property name="databaseType" value="h2"/>
+		<property name="jdbcDriver" value="org.h2.Driver" />
+    <!-- Load up all the configurations at startup -->
+		<property name="deploymentResources" value="classpath*:/processes/autodeploy/*.bpmn20.xml" />
+	</bean>
+  
+	<bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+		<property name="processEngineConfiguration" ref="processEngineConfiguration" />
+	</bean>
+
+	<!-- Entity Manager Factory Bean  -->
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="persistenceUnitName" value="persistenceUnit"/>
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="database" value="H2"/>
+				<property name="showSql" value="false"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean name="personDao" class="net.raescott.criteriaqueries.PersonDao" />
 
 </beans>

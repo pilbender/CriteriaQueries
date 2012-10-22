@@ -1,8 +1,7 @@
 package net.raescott.criteriaqueries;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import java.io.Serializable;
+import javax.persistence.*;
 
 /**
  * Entity Bean.
@@ -10,12 +9,19 @@ import javax.persistence.Id;
  * @author Richard Scott Smith <scott.smith@isostech.com>
  */
 @Entity
-public class Person {
+@NamedQueries({
+	@NamedQuery(name = "Person.findAll", query = "SELECT p FROM Person p")
+})
+public class Person implements Serializable {
 
 	@Id @GeneratedValue
 	private String id;
 	private String name;
 	private int age;
+
+	public Person() {
+
+	}
 
 	public Person(String name, int age) {
 		this.name = name;
