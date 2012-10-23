@@ -14,14 +14,18 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class App {
 	private static final Logger logger = LoggerFactory.getLogger(App.class);
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
 		BeanFactory beanFactory = applicationContext;
 		PersonDao personDao = (PersonDao) beanFactory.getBean("personDao");
 		
 		Person person = new Person("scott", 5);
+		logger.info("Person: " + person.getName());
+		personDao.persist(person);
+		logger.info("Person: " + person.getName());
 		
 		List<Person> personList = personDao.findAll();
-		logger.info("Person List: ", personList);
+		logger.info("Person List: " + personList);
+		logger.info("Done.");
 	}
 }

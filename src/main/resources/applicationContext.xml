@@ -1,57 +1,88 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beans xmlns="http://www.springframework.org/schema/beans" 
 	   xmlns:aop="http://www.springframework.org/schema/aop" 
 	   xmlns:context="http://www.springframework.org/schema/context" 
 	   xmlns:jee="http://www.springframework.org/schema/jee" 
 	   xmlns:tx="http://www.springframework.org/schema/tx" 
-	   xmlns:task="http://www.springframework.org/schema/task" 
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	   xmlns:i="http://www.springframework.org/schema/integration"
-	   xmlns:util="http://www.springframework.org/schema/util"
-	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	   xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd   
-	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
-	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
-	http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.1.xsd   
-	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd  
-	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
-	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
-	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
-	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.1.xsd ">
+	   xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.1.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+    <!--
+        This will automatically locate any and all property files you have
+        within your classpath, provided they fall under the META-INF/spring
+        directory. The located property files are parsed and their values can
+        then be used within application context files in the form of
+        ${propertyKey}.
+    -->
+	<context:property-placeholder location="classpath*:/*.properties"/>
+    <!--
+        Turn on AspectJ @Configurable support. As a result, any time you
+        instantiate an object, Spring will attempt to perform dependency
+        injection on that object. This occurs for instantiation via the "new"
+        keyword, as well as via reflection. This is possible because AspectJ
+        is used to "weave" Roo-based applications at compile time. In effect
+        this feature allows dependency injection of any object at all in your
+        system, which is a very useful feature (without @Configurable you'd
+        only be able to dependency inject objects acquired from Spring or
+        subsequently presented to a specific Spring dependency injection
+        method). Roo applications use this useful feature in a number of
+        areas, such as @PersistenceContext injection into entities.
+    -->
+	<context:spring-configured/>
+    <!--
+        This declaration will cause Spring to locate every @Component,
+        @Repository and @Service in your application. In practical terms this
+        allows you to write a POJO and then simply annotate the new POJO as an
+        @Service and Spring will automatically detect, instantiate and
+        dependency inject your service at startup time. Importantly, you can
+        then also have your new service injected into any other class that
+        requires it simply by declaring a field for your service inside the
+        relying class and Spring will inject it. Note that two exclude filters
+        are declared. The first ensures that Spring doesn't spend time
+        introspecting Roo-specific ITD aspects. The second ensures Roo doesn't
+        instantiate your @Controller classes, as these should be instantiated
+        by a web tier application context. Refer to web.xml for more details
+        about the web tier application context setup services.
+        
+        Furthermore, this turns on @Autowired, @PostConstruct etc support. These 
+        annotations allow you to use common Spring and Java Enterprise Edition 
+        annotations in your classes without needing to do any special configuration. 
+        The most commonly used annotation is @Autowired, which instructs Spring to
+        dependency inject an object into your class.
+    -->
+	<context:component-scan base-package="net.raescott">
+		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
+		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
+	</context:component-scan>
+	<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" id="dataSource">
+		<property name="driverClassName" value="${database.driverClassName}"/>
+		<property name="url" value="${database.url}"/>
+		<property name="username" value="${database.username}"/>
+		<property name="password" value="${database.password}"/>
+		<property name="testOnBorrow" value="true"/>
+		<property name="testOnReturn" value="true"/>
+		<property name="testWhileIdle" value="true"/>
+		<property name="timeBetweenEvictionRunsMillis" value="1800000"/>
+		<property name="numTestsPerEvictionRun" value="3"/>
+		<property name="minEvictableIdleTimeMillis" value="1800000"/>
+	</bean>
+	<bean class="org.springframework.orm.jpa.JpaTransactionManager" id="transactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
+	</bean>
+	<!--
+	<tx:annotation-driven mode="aspectj" transaction-manager="transactionManager"/>
+	-->
+	<tx:annotation-driven proxy-target-class="true" transaction-manager="txManager"/>
+	<bean id="txManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
 
-
-	<context:component-scan base-package="com.thescene" />
-
-	<bean id="org.h2.tools.Server" class="org.h2.tools.Server" scope="singleton" factory-method="createTcpServer"
-          init-method="start" depends-on="org.h2.tools.Server-WebServer">
-        <constructor-arg value="-tcp,-tcpAllowOthers,true,-tcpPort,9092"/>
-    </bean>
-
-    <bean id="org.h2.tools.Server-WebServer" class="org.h2.tools.Server" scope="singleton" factory-method="createWebServer" init-method="start">
-        <constructor-arg value="-web,-webAllowOthers,true,-webPort,8082"/>
-    </bean>
-
-    <!-- notice that loading the Driver as a bean is unnecessary is most cases! u could safely remove this and the depends-on in the next bean -->
-
-    <bean id="H2DatabaseJDBCDriver" class="org.h2.Driver" scope="singleton" init-method="load" depends-on="org.h2.tools.Server"/>
-
-    <bean id="h2databasePoolingDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" depends-on="H2DatabaseJDBCDriver" destroy-method="close">
-        <property name="driverClass" value="org.h2.Driver"/>
-        <property name="jdbcUrl" value="jdbc:h2:mem:appdb1;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=4"/>
-        <!-- ;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3 -->
-        <property name="user" value="sa"/>
-
-        <property name="password" value=""/>
-
-        <property name="maxPoolSize" value="20"/>
-        <property name="minPoolSize" value="5"/>
-        <property name="acquireIncrement" value="5"/>
-
-        <property name="maxConnectionAge" value="28800"/>
-        <property name="preferredTestQuery" value="SELECT 1"/>
-    </bean>
-
-
-	<bean name="personDao" class="net.raescott.criteriaqueries.PersonDao" />
-
+	<bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+		<property name="persistenceUnitName" value="persistenceUnit"/>
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
 </beans>

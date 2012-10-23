@@ -1,57 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<persistence xmlns="http://java.sun.com/xml/ns/persistence"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0"
-			 xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-	<persistence-unit name="persistenceUnit"
-					  transaction-type="RESOURCE_LOCAL">
-		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
-		<properties>
-			<property name="hibernate.dialect" value="com.able.etw.util.EtwH2Dialect" />
-			<!-- value="create" to build a new database on each run; value="update" 
-				to modify an existing database; value="create-drop" means the same as "create" 
-				but also drops tables when Hibernate closes; value="validate" makes no changes 
-				to the database -->
-			<property name="hibernate.hbm2ddl.auto" value="update" /> 
-			<property name="hibernate.jdbc.fetch_size" value="30" /> 
-			<property name="hibernate.jdbc.batch_size" value="30" /> 
-			<property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy" />
-			<property name="hibernate.max_fetch_depth" value="4" />
-			
-			<!-- Article about cacheing 
-			  http://www.gridshore.nl/2008/04/29/using-ehcache-and-verifying-that-it-works-with-jpa-and-springframework/
-			  -->
-			<property name="hibernate.cache.use_query_cache" value="false" />
-			<property name="hibernate.cache.use_second_level_cache" value="false" /> 
-			<property name="hibernate.generate_statistics" value="false"/>
-			<property name="hibernate.cache.provider_class" value="net.sf.ehcache.hibernate.EhCacheProvider" />
-			<property name="hibernate.cache.provider_configuration_file_resource_path" value="/ehcache.xml" />					
-			<!-- 
-                Should a revision be generated when a not-owned relation field changes 
-                (this can be either a collection in a one-to-many relation, or the field using "mappedBy"
-                 attribute in a one-to-one relation). 
-                 
-                 Default is true
-			 -->
-			<property name="org.hibernate.envers.revision_on_collection_change" value="false" /> 
-			
-			<!-- This should put the audit tables in a seperate MySQL schema (database) 
-			<property name="org.hibernate.envers.default_schema" value="etw_audit" /> 
-			-->
-			
-			
-			<property name="hibernate.ejb.event.post-insert"
-					  value="org.hibernate.ejb.event.EJB3PostInsertEventListener,org.hibernate.envers.event.AuditEventListener" />
-			<property name="hibernate.ejb.event.post-update"
-					  value="org.hibernate.ejb.event.EJB3PostUpdateEventListener,org.hibernate.envers.event.AuditEventListener" />
-			<property name="hibernate.ejb.event.post-delete"
-					  value="org.hibernate.ejb.event.EJB3PostDeleteEventListener,org.hibernate.envers.event.AuditEventListener" />
-			<property name="hibernate.ejb.event.pre-collection-update"
-					  value="org.hibernate.envers.event.AuditEventListener" />
-			<property name="hibernate.ejb.event.pre-collection-remove"
-					  value="org.hibernate.envers.event.AuditEventListener" />
-			<property name="hibernate.ejb.event.post-collection-recreate"
-					  value="org.hibernate.envers.event.AuditEventListener" />
-		</properties>
-	</persistence-unit>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
+<persistence-unit name="persistenceUnit" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>net.raescott.criteriaqueries.Person</class>
+    	<exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect"/>
+            <!-- value="create" to build a new database on each run; value="update" to modify an existing database; value="create-drop" means the same as "create" but also drops tables when Hibernate closes; value="validate" makes no changes to the database -->
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+            <property name="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>
+            <property name="hibernate.connection.charSet" value="UTF-8"/>
+            <!-- Uncomment the following two properties for JBoss only -->
+            <!-- property name="hibernate.validator.apply_to_ddl" value="false" /-->
+            <!-- property name="hibernate.validator.autoregister_listeners" value="false" /-->
+        </properties>
+    </persistence-unit>
 </persistence>
