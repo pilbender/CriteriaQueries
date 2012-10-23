@@ -8,6 +8,7 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	   xmlns:i="http://www.springframework.org/schema/integration"
 	   xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	   xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd   
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
@@ -15,36 +16,25 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd  
 	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
-	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.1.xsd ">
 
 
 	<context:component-scan base-package="com.thescene" />
 
-	<bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+	<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" id="dataSource">
+		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+		<property name="url" value="jdbc\:hsqldb\:mem\:spring-playground" />
+		<property name="username" value="sa" />
+		<property name="password" value="" />
+	</bean>
+	<bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
 		<property name="dataSource" ref="dataSource" />
-		<property name="transactionManager" ref="transactionManager" />
-		<property name="databaseSchemaUpdate" value="true" />
-		<property name="jobExecutorActivate" value="false" />
-		<property name="databaseType" value="h2"/>
-		<property name="jdbcDriver" value="org.h2.Driver" />
-    <!-- Load up all the configurations at startup -->
-		<property name="deploymentResources" value="classpath*:/processes/autodeploy/*.bpmn20.xml" />
 	</bean>
-  
-	<bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
-		<property name="processEngineConfiguration" ref="processEngineConfiguration" />
-	</bean>
-
-	<!-- Entity Manager Factory Bean  -->
-	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="persistenceUnitName" value="persistenceUnit"/>
-		<property name="jpaVendorAdapter">
-			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-				<property name="database" value="H2"/>
-				<property name="showSql" value="false"/>
-			</bean>
-		</property>
-	</bean>
+	
+	<!--
+	<jdbc:embedded-database id="embeddedDatasource" type="HSQL"/>
+	-->
 
 	<bean name="personDao" class="net.raescott.criteriaqueries.PersonDao" />
 
