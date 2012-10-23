@@ -22,19 +22,35 @@
 
 	<context:component-scan base-package="com.thescene" />
 
-	<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" id="dataSource">
-		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
-		<property name="url" value="jdbc\:hsqldb\:mem\:spring-playground" />
-		<property name="username" value="sa" />
-		<property name="password" value="" />
-	</bean>
-	<bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
-	<!--
-	<jdbc:embedded-database id="embeddedDatasource" type="HSQL"/>
-	-->
+	<bean id="org.h2.tools.Server" class="org.h2.tools.Server" scope="singleton" factory-method="createTcpServer"
+          init-method="start" depends-on="org.h2.tools.Server-WebServer">
+        <constructor-arg value="-tcp,-tcpAllowOthers,true,-tcpPort,9092"/>
+    </bean>
+
+    <bean id="org.h2.tools.Server-WebServer" class="org.h2.tools.Server" scope="singleton" factory-method="createWebServer" init-method="start">
+        <constructor-arg value="-web,-webAllowOthers,true,-webPort,8082"/>
+    </bean>
+
+    <!-- notice that loading the Driver as a bean is unnecessary is most cases! u could safely remove this and the depends-on in the next bean -->
+
+    <bean id="H2DatabaseJDBCDriver" class="org.h2.Driver" scope="singleton" init-method="load" depends-on="org.h2.tools.Server"/>
+
+    <bean id="h2databasePoolingDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" depends-on="H2DatabaseJDBCDriver" destroy-method="close">
+        <property name="driverClass" value="org.h2.Driver"/>
+        <property name="jdbcUrl" value="jdbc:h2:mem:appdb1;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=4"/>
+        <!-- ;TRACE_LEVEL_FILE=3;TRACE_LEVEL_SYSTEM_OUT=3 -->
+        <property name="user" value="sa"/>
+
+        <property name="password" value=""/>
+
+        <property name="maxPoolSize" value="20"/>
+        <property name="minPoolSize" value="5"/>
+        <property name="acquireIncrement" value="5"/>
+
+        <property name="maxConnectionAge" value="28800"/>
+        <property name="preferredTestQuery" value="SELECT 1"/>
+    </bean>
+
 
 	<bean name="personDao" class="net.raescott.criteriaqueries.PersonDao" />
 
