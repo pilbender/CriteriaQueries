@@ -1,14 +1,20 @@
 package net.raescott.criteriaqueries;
 
-import java.util.LinkedList;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -22,7 +28,7 @@ public class PersonDao {
 	EntityManager em;
 
 	@Transactional
-	public List<Person> findAll() {
+	public List<Person> findAllNamedQuery() {
 		List<Person> personList = new LinkedList<Person>(); // Null Object Pattern
 		try {
 			personList = (List<Person>) em.createNamedQuery("Person.findAll")
@@ -32,6 +38,22 @@ public class PersonDao {
 		}
 		return personList;
 	}
+
+    @Transactional
+    public List<Person> findAllCriteriaQuery() {
+        List<Person> personList = new LinkedList<Person>(); // Null Object Pattern
+        try {
+            CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+            CriteriaQuery<Person> personCriteriaQuery = criteriaBuilder.createQuery(Person.class);
+            Root<Person> personRoot = personCriteriaQuery.from(Person.class);
+            personCriteriaQuery.select(personRoot);
+            TypedQuery<Person> personTypedQuery = em.createQuery(personCriteriaQuery);
+            personList = personTypedQuery.getResultList();
+        } catch (NoResultException nre) {
+            // This is okay, it means the database was empty.
+        }
+        return personList;
+    }
 
 	@Transactional
 	public void persist(Person person) {
